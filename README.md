@@ -1,6 +1,6 @@
 # Hacky
 
-Hacky is a Next.js-based web app intended to aggregate and analyze GitHub activity.
+Hacky is a Next.js-based web app intended to manage hackathons by aggregating and analyze user's GitHub activity.
 The repository is currently in the foundation stage with the frontend scaffold and tooling in place.
 
 ## Project Phase
@@ -15,6 +15,8 @@ Current phase: **Phase 1 - Foundation/Scaffolding**
 
 - Framework: Next.js (App Router)
 - UI: React + Tailwind CSS
+- Auth : Auth.js
+- DB & ORM : Supabase <postgres> + prisma orm
 - Language: TypeScript
 - Linting: ESLint (Next.js config)
 - Runtime/package manager: Node.js + npm
