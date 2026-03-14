@@ -1,4 +1,3 @@
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -8,19 +7,33 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model User {
-  id             String    @id @default(cuid())
-  name           String?
-  email          String?   @unique
-  emailVerified  DateTime?
-  image          String?
-  githubUserId   String?   @unique
-  githubUsername String?
-  avatar         String?
-  createdAt      DateTime  @default(now())
+enum UserRole {
+  PARTICIPANT
+  ORGANIZER
+}
 
-  accounts Account[]
-  sessions Session[]
+enum HackathonStatus {
+  DRAFT
+  PUBLISHED
+  COMPLETED
+}
+
+model User {
+  id                String                @id @default(cuid())
+  name              String?
+  email             String?               @unique
+  emailVerified     DateTime?
+  image             String?
+  githubUserId      String?               @unique
+  githubUsername    String?
+  avatar            String?
+  role              UserRole              @default(PARTICIPANT)
+  createdAt         DateTime              @default(now())
+  updatedAt         DateTime              @updatedAt
+  accounts          Account[]
+  sessions          Session[]
+  createdHackathons Hackathon[]           @relation("HackathonCreator")
+  participations    HackathonParticipant[]
 }
 
 model Account {
@@ -35,8 +48,7 @@ model Account {
   scope             String?
   id_token          String?
   session_state     String?
-
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user              User    @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@id([provider, providerAccountId])
 }
@@ -45,8 +57,7 @@ model Session {
   sessionToken String   @unique
   userId       String
   expires      DateTime
-
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 model VerificationToken {
@@ -55,4 +66,36 @@ model VerificationToken {
   expires    DateTime
 
   @@id([identifier, token])
+}
+
+model Hackathon {
+  id                 String                @id @default(cuid())
+  title              String
+  slug               String                @unique
+  description        String?
+  startAt            DateTime
+  endAt              DateTime
+  registrationCloses DateTime
+  status             HackathonStatus       @default(PUBLISHED)
+  createdAt          DateTime              @default(now())
+  updatedAt          DateTime              @updatedAt
+  createdById        String
+  createdBy          User                  @relation("HackathonCreator", fields: [createdById], references: [id], onDelete: Cascade)
+  participants       HackathonParticipant[]
+}
+
+model HackathonParticipant {
+  id          String   @id @default(cuid())
+  userId      String
+  hackathonId String
+  fullName    String
+  college     String
+  phone       String
+  joinedAt    DateTime @default(now())
+
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  hackathon Hackathon @relation(fields: [hackathonId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, hackathonId])
+  @@index([hackathonId])
 }

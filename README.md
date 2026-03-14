@@ -17,7 +17,7 @@
 
 ## Overview
 
-Hacky lets hackathon organizers authenticate students via GitHub OAuth and view their GitHub profiles through a clean dashboard. The platform is designed to eventually ingest repository data, pull requests, and commit history to evaluate participant activity.
+Hacky lets hackathon organizers authenticate students via GitHub OAuth and view their GitHub profiles through a clean dashboard. The platform is designed to eventually ingest repository data, pull requests, and commit history to evaluate participant activity.`
 
 > **Current Phase: Phase 1 — Auth & Dashboard MVP**
 > Students can sign in with GitHub and view their profile on a protected dashboard.
