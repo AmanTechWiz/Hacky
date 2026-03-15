@@ -3,7 +3,9 @@ import { UserRole } from "@prisma/client";
 import { cookies } from "next/headers";
 
 export function normalizeRole(value: string | undefined): UserRole {
-  return value === "organizer" ? UserRole.ORGANIZER : UserRole.PARTICIPANT;
+  if (value === "organizer") return UserRole.ORGANIZER;
+  if (value === "judge") return UserRole.JUDGE;
+  return UserRole.PARTICIPANT;
 }
 
 export async function syncUserRoleFromCookie(userId: string, currentRole: UserRole) {

@@ -8,6 +8,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
   adapter: PrismaAdapter(prisma),
   providers: [
     GitHub({
+      allowDangerousEmailAccountLinking: true,
       profile(profile) {
         return {
           id: String(profile.id),
@@ -17,7 +18,9 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         };
       },
     }),
-    Google,
+    Google({
+      allowDangerousEmailAccountLinking: true,
+    }),
   ],
   session: {
     strategy: "database",

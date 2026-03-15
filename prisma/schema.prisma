@@ -3,37 +3,28 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
-}
-
-enum UserRole {
-  PARTICIPANT
-  ORGANIZER
-}
-
-enum HackathonStatus {
-  DRAFT
-  PUBLISHED
-  COMPLETED
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
 }
 
 model User {
-  id                String                @id @default(cuid())
+  id                String                 @id @default(cuid())
   name              String?
-  email             String?               @unique
+  email             String?                @unique
   emailVerified     DateTime?
   image             String?
-  githubUserId      String?               @unique
+  githubUserId      String?                @unique
   githubUsername    String?
   avatar            String?
-  role              UserRole              @default(PARTICIPANT)
-  createdAt         DateTime              @default(now())
-  updatedAt         DateTime              @updatedAt
+  createdAt         DateTime               @default(now())
+  role              UserRole               @default(PARTICIPANT)
+  updatedAt         DateTime               @default(now()) @updatedAt
   accounts          Account[]
-  sessions          Session[]
-  createdHackathons Hackathon[]           @relation("HackathonCreator")
+  createdHackathons Hackathon[]            @relation("HackathonCreator")
   participations    HackathonParticipant[]
+  judgeAssignments  HackathonJudge[]
+  sessions          Session[]
 }
 
 model Account {
@@ -69,33 +60,79 @@ model VerificationToken {
 }
 
 model Hackathon {
-  id                 String                @id @default(cuid())
+  id                 String                 @id @default(cuid())
   title              String
-  slug               String                @unique
+  slug               String                 @unique
   description        String?
   startAt            DateTime
   endAt              DateTime
   registrationCloses DateTime
-  status             HackathonStatus       @default(PUBLISHED)
-  createdAt          DateTime              @default(now())
-  updatedAt          DateTime              @updatedAt
+  inviteCode         String?                @unique
+  status             HackathonStatus        @default(PUBLISHED)
+  createdAt          DateTime               @default(now())
+  updatedAt          DateTime               @updatedAt
   createdById        String
-  createdBy          User                  @relation("HackathonCreator", fields: [createdById], references: [id], onDelete: Cascade)
+  createdBy          User                   @relation("HackathonCreator", fields: [createdById], references: [id], onDelete: Cascade)
   participants       HackathonParticipant[]
+  judges             HackathonJudge[]
 }
 
 model HackathonParticipant {
-  id          String   @id @default(cuid())
-  userId      String
-  hackathonId String
-  fullName    String
-  college     String
-  phone       String
-  joinedAt    DateTime @default(now())
-
-  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
-  hackathon Hackathon @relation(fields: [hackathonId], references: [id], onDelete: Cascade)
+  id                 String       @id @default(cuid())
+  userId             String
+  hackathonId        String
+  joinedAt           DateTime     @default(now())
+  teamName           String       @default("Team Name")
+  teamLeader         String       @default("Team Leader")
+  teammateGithubUrls String[]     @default([])
+  memberCount        Int          @default(1)
+  trackedRepo        String       @default("https://github.com/owner/repo")
+  deployedUrl        String?
+  presentationLink   String?
+  hackathon          Hackathon    @relation(fields: [hackathonId], references: [id], onDelete: Cascade)
+  user               User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  evaluations        Evaluation[]
 
   @@unique([userId, hackathonId])
   @@index([hackathonId])
+}
+
+model HackathonJudge {
+  id          String       @id @default(cuid())
+  userId      String
+  hackathonId String
+  invitedAt   DateTime     @default(now())
+  user        User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  hackathon   Hackathon    @relation(fields: [hackathonId], references: [id], onDelete: Cascade)
+  evaluations Evaluation[]
+
+  @@unique([userId, hackathonId])
+  @@index([hackathonId])
+}
+
+model Evaluation {
+  id            String               @id @default(cuid())
+  judgeId       String
+  participantId String
+  innovation    Int
+  presentation  Int
+  feedback      String?
+  createdAt     DateTime             @default(now())
+  updatedAt     DateTime             @updatedAt
+  judge         HackathonJudge       @relation(fields: [judgeId], references: [id], onDelete: Cascade)
+  participant   HackathonParticipant @relation(fields: [participantId], references: [id], onDelete: Cascade)
+
+  @@unique([judgeId, participantId])
+}
+
+enum UserRole {
+  PARTICIPANT
+  ORGANIZER
+  JUDGE
+}
+
+enum HackathonStatus {
+  DRAFT
+  PUBLISHED
+  COMPLETED
 }
